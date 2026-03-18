@@ -111,7 +111,9 @@ def post_detail(request, id):
         )
     ):
         post = get_object_or_404(
-            Post.objects.select_related('author', 'category', 'location').annotate(
+            Post.objects.select_related(
+                'author', 'category', 'location'
+            ).annotate(
                 comment_count=Count('comments')
             ),
             pk=id,
@@ -121,7 +123,9 @@ def post_detail(request, id):
         )
     context = {
         'post': post,
-        'comments': post.comments.select_related('author').order_by('created_at'),
+        'comments': post.comments.select_related(
+            'author'
+        ).order_by('created_at'),
     }
     if request.user.is_authenticated:
         context['form'] = CommentForm()
@@ -134,8 +138,10 @@ def category_posts(request, category_slug):
         slug=category_slug,
         is_published=True,
     )
-    post_list = get_visible_posts_queryset().filter(category=category).order_by(
-        '-pub_date'
+    post_list = (
+        get_visible_posts_queryset()
+        .filter(category=category)
+        .order_by('-pub_date')
     )
     page_obj = paginate_queryset(request, post_list)
     context = {
@@ -187,7 +193,8 @@ def edit_comment(request, post_id, comment_id):
     if request.method == 'POST' and form.is_valid():
         form.save()
         return redirect('blog:post_detail', id=post_id)
-    return render(request, 'blog/comment.html', {'form': form, 'comment': comment})
+    context = {'form': form, 'comment': comment}
+    return render(request, 'blog/comment.html', context)
 
 
 @login_required
