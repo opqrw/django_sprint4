@@ -19,9 +19,12 @@
             </a>
           </li>
           {% if user.is_authenticated %}
+            {% url 'blog:create_post' as create_post_url %}
             <div class="btn-group" role="group" aria-label="Basic outlined example">
-              <button type="button" class="btn btn-outline-primary"><a class="text-decoration-none text-reset"
-                  href="{% url 'blog:create_post' %}">Написать пост</a></button>
+              {% if create_post_url %}
+                <button type="button" class="btn btn-outline-primary"><a class="text-decoration-none text-reset"
+                    href="{{ create_post_url }}">Написать пост</a></button>
+              {% endif %}
               <button type="button" class="btn btn-outline-primary"><a class="text-decoration-none text-reset"
                   href="{% url 'blog:profile' user.username %}">{{ user.username }}</a></button>
               <button type="button" class="btn btn-outline-primary"><a class="text-decoration-none text-reset"

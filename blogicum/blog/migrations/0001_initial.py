@@ -48,6 +48,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=256, verbose_name='Заголовок')),
                 ('text', models.TextField(verbose_name='Текст')),
+                ('image', models.ImageField(blank=True, upload_to='posts_images', verbose_name='Изображение')),
                 ('pub_date', models.DateTimeField(help_text='Если установить дату и время в будущем можно делать отложенные публикации.', verbose_name='Дата и время публикации')),
                 ('is_published', models.BooleanField(default=True, help_text='Снимите галочку, чтобы скрыть публикацию.', verbose_name='Опубликовано')),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Добавлено')),
