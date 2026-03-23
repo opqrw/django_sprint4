@@ -6,10 +6,10 @@ app_name = 'blog'
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('posts/create/', views.PostCreateView.as_view(), name='create_post'),
+    path('posts/create/', views.create_post, name='create_post'),
     path(
         'posts/<int:post_id>/edit/',
-        views.PostUpdateView.as_view(),
+        views.edit_post,
         name='edit_post'
     ),
     path(
@@ -32,7 +32,7 @@ urlpatterns = [
         views.delete_comment,
         name='delete_comment'
     ),
-    path('posts/<int:id>/', views.post_detail, name='post_detail'),
+    path('posts/<int:post_id>/', views.post_detail, name='post_detail'),
     path('profile/<str:username>/', views.profile, name='profile'),
     path(
         'edit_profile/',
