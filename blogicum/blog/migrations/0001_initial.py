@@ -25,6 +25,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Добавлено')),
             ],
             options={
+                'ordering': ('title',),
                 'verbose_name': 'категория',
                 'verbose_name_plural': 'Категории',
             },
@@ -38,6 +39,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Добавлено')),
             ],
             options={
+                'ordering': ('name',),
                 'verbose_name': 'местоположение',
                 'verbose_name_plural': 'Местоположения',
             },
@@ -52,11 +54,12 @@ class Migration(migrations.Migration):
                 ('pub_date', models.DateTimeField(help_text='Если установить дату и время в будущем можно делать отложенные публикации.', verbose_name='Дата и время публикации')),
                 ('is_published', models.BooleanField(default=True, help_text='Снимите галочку, чтобы скрыть публикацию.', verbose_name='Опубликовано')),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Добавлено')),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='Автор публикации')),
-                ('category', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='blog.category', verbose_name='Категория')),
-                ('location', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='blog.location', verbose_name='Местоположение')),
+                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='posts', to=settings.AUTH_USER_MODEL, verbose_name='Автор публикации')),
+                ('category', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='posts', to='blog.category', verbose_name='Категория')),
+                ('location', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='posts', to='blog.location', verbose_name='Местоположение')),
             ],
             options={
+                'ordering': ('-pub_date',),
                 'verbose_name': 'публикация',
                 'verbose_name_plural': 'Публикации',
             },

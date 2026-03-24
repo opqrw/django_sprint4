@@ -7,7 +7,7 @@ from django.db.models import Count, QuerySet
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 
 from blog.models import Category, Comment, Post
 from .forms import CommentForm, PostForm, UserEditForm
@@ -23,20 +23,17 @@ class RegistrationView(CreateView):
     template_name = 'registration/registration_form.html'
 
 
-class ProfileUpdateView(LoginRequiredMixin, CreateView):
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     form_class = UserEditForm
     template_name = 'blog/user.html'
 
-    def get(self, request, *args, **kwargs):
-        form = UserEditForm(instance=request.user)
-        return render(request, self.template_name, {'form': form})
+    def get_object(self, queryset=None):
+        return self.request.user
 
-    def post(self, request, *args, **kwargs):
-        form = UserEditForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            return redirect('blog:profile', username=request.user.username)
-        return render(request, self.template_name, {'form': form})
+    def get_success_url(self):
+        return reverse_lazy('blog:profile', kwargs={
+            'username': self.request.user.username,
+        })
 
 
 def paginate_queryset(request, queryset):
@@ -45,20 +42,32 @@ def paginate_queryset(request, queryset):
     return paginator.get_page(page_number)
 
 
-def get_posts_queryset() -> QuerySet:
+def get_posts_base_queryset() -> QuerySet:
     return Post.objects.select_related(
         'author', 'category', 'location'
-    ).annotate(
-        comment_count=Count('comments')
-    ).order_by('-pub_date')
+    )
 
 
-def get_visible_posts_queryset() -> QuerySet:
-    return get_posts_queryset().filter(
+def annotate_comment_count(queryset: QuerySet) -> QuerySet:
+    return queryset.annotate(comment_count=Count('comments'))
+
+
+def filter_published_posts(queryset: QuerySet) -> QuerySet:
+    return queryset.filter(
         is_published=True,
         category__is_published=True,
         pub_date__lte=timezone.now(),
     )
+
+
+def get_posts_queryset() -> QuerySet:
+    return annotate_comment_count(
+        get_posts_base_queryset()
+    ).order_by('-pub_date')
+
+
+def get_visible_posts_queryset() -> QuerySet:
+    return filter_published_posts(get_posts_queryset())
 
 
 def get_post_comments_queryset() -> QuerySet:
@@ -77,11 +86,7 @@ def get_post_detail_queryset(user) -> QuerySet:
 def get_profile_posts_queryset(profile, viewer) -> QuerySet:
     post_list = get_posts_queryset().filter(author=profile)
     if viewer != profile:
-        post_list = post_list.filter(
-            is_published=True,
-            category__is_published=True,
-            pub_date__lte=timezone.now(),
-        )
+        post_list = filter_published_posts(post_list)
     return post_list
 
 
@@ -91,7 +96,10 @@ def index(request):
 
 
 def post_detail(request, post_id):
-    post = get_object_or_404(get_post_detail_queryset(request.user), pk=post_id)
+    post = get_object_or_404(
+        get_post_detail_queryset(request.user),
+        pk=post_id
+    )
     context = {
         'post': post,
         'comments': get_post_comments_queryset().filter(post=post),
@@ -102,7 +110,11 @@ def post_detail(request, post_id):
 
 
 def category_posts(request, category_slug):
-    category = get_object_or_404(Category, slug=category_slug, is_published=True)
+    category = get_object_or_404(
+        Category,
+        slug=category_slug,
+        is_published=True
+    )
     post_list = get_visible_posts_queryset().filter(category=category)
     page_obj = paginate_queryset(request, post_list)
     context = {
@@ -166,7 +178,10 @@ def delete_post(request, post_id):
 
 @login_required
 def add_comment(request, post_id):
-    post = get_object_or_404(get_post_detail_queryset(request.user), pk=post_id)
+    post = get_object_or_404(
+        get_post_detail_queryset(request.user),
+        pk=post_id
+    )
     if request.method != 'POST':
         return redirect('blog:post_detail', post_id=post_id)
     form = CommentForm(request.POST)
@@ -191,7 +206,11 @@ def edit_comment(request, post_id, comment_id):
     if request.method == 'POST' and form.is_valid():
         form.save()
         return redirect('blog:post_detail', post_id=post_id)
-    return render(request, 'blog/comment.html', {'form': form, 'comment': comment})
+    return render(
+        request,
+        'blog/comment.html',
+        {'form': form, 'comment': comment}
+    )
 
 
 @login_required

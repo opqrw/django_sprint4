@@ -1,6 +1,28 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin
 
 from blog.models import Category, Comment, Location, Post
+
+User = get_user_model()
+
+
+try:
+    admin.site.unregister(User)
+except admin.sites.NotRegistered:
+    pass
+
+
+@admin.register(User)
+class BlogicumUserAdmin(UserAdmin):
+    list_display = (
+        'username',
+        'email',
+        'first_name',
+        'last_name',
+        'is_staff',
+    )
+    search_fields = ('username', 'email', 'first_name', 'last_name')
 
 
 @admin.register(Category)

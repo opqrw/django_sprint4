@@ -26,9 +26,17 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         exclude = ('author', 'created_at', 'is_published')
+        widgets = {
+            'text': forms.Textarea(attrs={'rows': 6}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if isinstance(field.widget, forms.CheckboxInput):
+                continue
+            css_class = field.widget.attrs.get('class', '')
+            field.widget.attrs['class'] = f'{css_class} form-control'.strip()
         if not self.instance.pk:
             self.initial.setdefault(
                 'pub_date',
@@ -40,3 +48,10 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ('text',)
+        widgets = {
+            'text': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['text'].widget.attrs['class'] = 'form-control'

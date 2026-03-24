@@ -28,6 +28,7 @@ class Category(models.Model):
     )
 
     class Meta:
+        ordering = ('title',)
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
 
@@ -48,6 +49,7 @@ class Location(models.Model):
     )
 
     class Meta:
+        ordering = ('name',)
         verbose_name = 'местоположение'
         verbose_name_plural = 'Местоположения'
 
@@ -73,6 +75,7 @@ class Post(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        related_name='posts',
         verbose_name='Автор публикации'
     )
     location = models.ForeignKey(
@@ -80,12 +83,14 @@ class Post(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        related_name='posts',
         verbose_name='Местоположение'
     )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         null=True,
+        related_name='posts',
         verbose_name='Категория'
     )
     is_published = models.BooleanField(
@@ -99,6 +104,7 @@ class Post(models.Model):
     )
 
     class Meta:
+        ordering = ('-pub_date',)
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
 
@@ -116,6 +122,7 @@ class Comment(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        related_name='comments',
         verbose_name='Автор комментария'
     )
     text = models.TextField('Текст комментария')
